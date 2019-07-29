@@ -35,7 +35,6 @@ namespace EventWebApi2
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddCors();
             services.AddDbContext<EventManagerContext>(options => options.UseSqlServer(Configuration.GetConnectionString("EventContext")));
         }
 
@@ -55,7 +54,7 @@ namespace EventWebApi2
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-
+            app.UseCors();
             app.UseMvc();
         }
     }

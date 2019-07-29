@@ -27,11 +27,19 @@ namespace EventWebApi2.Controllers
         }
 
         // PUT: api/user/
-        [HttpPut("{registeredUser}")]
+        [HttpPost]
         public async Task CreateNewClient(RegisteredUser registeredUser)
         {
             _context.RegisteredUser.Add(registeredUser);
             await _context.SaveChangesAsync();
+        }
+
+        //GET: api/user/
+        [HttpGet("{username,password}")]
+        public int Login(string username, string password)
+        {
+            int id =  _context.RegisteredUser.SingleOrDefault(u => u.Username == username && u.Password == password).Id;
+            return id;
         }
     }
 }
