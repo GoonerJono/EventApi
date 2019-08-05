@@ -33,7 +33,7 @@ namespace EventWebApi2
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
+            services.AddCors();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContext<EventManagerContext>(options => options.UseSqlServer(Configuration.GetConnectionString("EventContext")));
         }
@@ -54,7 +54,7 @@ namespace EventWebApi2
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseCors();
+            app.UseCors(builder => builder.AllowAnyOrigin());
             app.UseMvc();
         }
     }
