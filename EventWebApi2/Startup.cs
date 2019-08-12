@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Cors.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +34,10 @@ namespace EventWebApi2
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddCors();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowMyOrigin", builder=> builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            });
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddDbContext<EventManagerContext>(options => options.UseSqlServer(Configuration.GetConnectionString("EventContext")));
         }
@@ -54,7 +58,7 @@ namespace EventWebApi2
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
-            app.UseCors(builder => builder.AllowAnyOrigin());
+            app.UseCors("AllowMyOrigin");
             app.UseMvc();
         }
     }

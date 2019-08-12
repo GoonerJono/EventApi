@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventWebApi2.Controllers
 {
@@ -23,7 +24,13 @@ namespace EventWebApi2.Controllers
         public async Task<int> Login(RegisteredUser registeredUser)
         {
 
-            var userid =  _context.RegisteredUser.Where(r => r.Username == registeredUser.Username && r.Password == registeredUser.Password).Select(r=> r.Id);
+            var userid = await _context.RegisteredUser
+                .Where(r => r.Username == registeredUser.Username && r.Password == registeredUser.Password)
+                .Select(r => r.Id).FirstOrDefaultAsync();
+            if (userid == 0)
+            {
+                return 0;
+            }
             return Convert.ToInt32(userid);
         }
 
