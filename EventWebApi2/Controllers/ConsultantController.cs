@@ -6,27 +6,28 @@ namespace EventWebApi2.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class ConsultantController : ControllerBase
     {
         private readonly EventManagerContext _context;
 
-        public UserController(EventManagerContext context)
+        public ConsultantController(EventManagerContext context)
         {
             _context = context;
         }
 
+
         [HttpGet("{id}")]
-        public async Task<RegisteredUser> GetUserDetails(int id)
-        { 
-            var user = await _context.RegisteredUser.FindAsync(id);
-            return user == null ? null : user;
+        public async Task<RegisteredConsultant> GetConsultantDetails(int id)
+        {
+            var consultant = await _context.RegisteredConsultant.FindAsync(id);
+            return consultant == null ? null : consultant;
         }
 
         [HttpPost]
-        public async Task<int> CreateNewUser(RegisteredUser registeredUser)
+        public async Task<int> CreateNewConsultant(RegisteredConsultant registeredConsultant)
         {
 
-            _context.RegisteredUser.Add(registeredUser);
+            _context.RegisteredConsultant.Add(registeredConsultant);
             if (await _context.SaveChangesAsync() > 0)
             {
                 return 1;
@@ -35,10 +36,10 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpPut]
-        public async Task<int> UpdateUser(RegisteredUser registeredUser)
+        public async Task<int> UpdateConsultant(RegisteredConsultant registeredConsultant)
         {
 
-            _context.RegisteredUser.Update(registeredUser);
+            _context.RegisteredConsultant.Update(registeredConsultant);
             if (await _context.SaveChangesAsync() > 0)
             {
                 return 1;
