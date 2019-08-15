@@ -20,21 +20,21 @@ namespace EventWebApi2.Controllers
             _context = context;
         }
 
-        [HttpGet("{id}")]
-        public async Task<List<Appointment>> GetAppointmentsUserId(int userId)
+        [HttpGet("GetAppointmentsUserId/{id}")]
+        public async Task<List<Appointment>> GetAppointmentsUserId(int id)
         {
-            var userAppointments = await _context.Appointment.Where(u=> u.UserId == userId).ToListAsync();
+            var userAppointments = await _context.Appointment.Where(u=> u.UserId == id).ToListAsync();
             return userAppointments == null ? null : userAppointments;
         }
 
-        //[HttpGet("{id}")]
-        //public async Task<List<Appointment>> GetAppointmentsConsultantId(int consultantId)
-        //{
-        //    var consultantAppointments = await _context.Appointment.Where(u => u.UserId == consultantId).ToListAsync();
-        //    return consultantAppointments == null ? null : consultantAppointments;
-        //}
+        [HttpGet("GetAppointmentsConsultantId/{id}")]
+        public async Task<List<Appointment>> GetAppointmentsConsultantId(int consultantId)
+        {
+            var consultantAppointments = await _context.Appointment.Where(u => u.UserId == consultantId).ToListAsync();
+            return consultantAppointments == null ? null : consultantAppointments;
+        }
 
-        [HttpPost]
+        [HttpPost("CreateNewAppointment")]
         public async Task<int> CreateNewAppointment(Appointment appointment)
         {
 
@@ -46,17 +46,17 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
-        //[HttpDelete]
-        //public async Task<int> DeleteAppointment(int appointmentId)
-        //{
-
-        //    _context.Appointment.Remove(appointmentId);
-        //    if (await _context.SaveChangesAsync() > 0)
-        //    {
-        //        return 1;
-        //    }
-        //    return 0;
-        //}
+        [HttpDelete("DeleteAppointment")]
+        public async Task<int> DeleteAppointment(int appointmentId)
+        {
+            var appointment = await _context.Appointment.FindAsync(appointmentId);
+            _context.Appointment.Remove(appointment);
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
 
 
     }

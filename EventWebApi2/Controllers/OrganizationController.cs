@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventWebApi2.Controllers
 {
@@ -19,6 +22,13 @@ namespace EventWebApi2.Controllers
         public async Task<RegisteredOrganization> GetOrganizationDetails(int id)
         {
             var registeredOrganization = await _context.RegisteredOrganization.FindAsync(id);
+            return registeredOrganization == null ? null : registeredOrganization;
+        }
+
+        [HttpGet("GetOrganizationsByTypeofService/{id}")]
+        public async Task<List<RegisteredOrganization>> GetOrganizationsByTypeofService(int id)
+        {
+            var registeredOrganization = await _context.RegisteredOrganization.Where(o=> o.TypeOfServiceId == id).ToListAsync();
             return registeredOrganization == null ? null : registeredOrganization;
         }
 

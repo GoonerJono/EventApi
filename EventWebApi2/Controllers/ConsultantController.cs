@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EventWebApi2.Controllers
 {
@@ -20,6 +23,13 @@ namespace EventWebApi2.Controllers
         public async Task<RegisteredConsultant> GetConsultantDetails(int id)
         {
             var consultant = await _context.RegisteredConsultant.FindAsync(id);
+            return consultant == null ? null : consultant;
+        }
+
+        [HttpGet("GetConsultantDetailsOrganizationId/{id}")]
+        public async Task<List<RegisteredConsultant>> GetConsultantDetailsOrganizationId(int id)
+        {
+            var consultant = await _context.RegisteredConsultant.Where(con => con.OrganisationId ==id).ToListAsync();
             return consultant == null ? null : consultant;
         }
 

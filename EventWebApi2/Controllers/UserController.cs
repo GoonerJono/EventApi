@@ -15,14 +15,14 @@ namespace EventWebApi2.Controllers
             _context = context;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetUserDetails/{id}")]
         public async Task<RegisteredUser> GetUserDetails(int id)
         { 
             var user = await _context.RegisteredUser.FindAsync(id);
             return user == null ? null : user;
         }
 
-        [HttpPost]
+        [HttpPost("CreateNewUser")]
         public async Task<int> CreateNewUser(RegisteredUser registeredUser)
         {
 
@@ -34,7 +34,7 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
-        [HttpPut]
+        [HttpPut("UpdateUser")]
         public async Task<int> UpdateUser(RegisteredUser registeredUser)
         {
 
