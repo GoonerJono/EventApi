@@ -22,7 +22,7 @@ namespace EventWebApi2.Controllers
             return user == null ? null : user;
         }
 
-        [HttpPost("CreateNewUser")]
+        [HttpPost]
         public async Task<int> CreateNewUser(RegisteredUser registeredUser)
         {
 

@@ -28,22 +28,37 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpGet("GetAppointmentsConsultantId/{id}")]
-        public async Task<List<Appointment>> GetAppointmentsConsultantId(int consultantId)
+        public async Task<List<Appointment>> GetAppointmentsConsultantId(int id)
         {
-            var consultantAppointments = await _context.Appointment.Where(u => u.UserId == consultantId).ToListAsync();
+            var consultantAppointments = await _context.Appointment.Where(u => u.UserId == id).ToListAsync();
+            return consultantAppointments == null ? null : consultantAppointments;
+        }
+
+        [HttpGet("GetAppointment/{id}")]
+        public async Task<List<Appointment>> GetAppointment(int id)
+        {
+            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).ToListAsync();
             return consultantAppointments == null ? null : consultantAppointments;
         }
 
         [HttpPost("CreateNewAppointment")]
         public async Task<int> CreateNewAppointment(Appointment appointment)
         {
-
-            _context.Appointment.Add(appointment);
-            if (await _context.SaveChangesAsync() > 0)
+            try
             {
-                return 1;
+                _context.Appointment.Add(appointment);
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return 1;
+                }
+                return 0;
             }
-            return 0;
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
 
         [HttpDelete("DeleteAppointment")]

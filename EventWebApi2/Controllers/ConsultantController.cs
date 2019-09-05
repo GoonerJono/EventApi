@@ -19,7 +19,7 @@ namespace EventWebApi2.Controllers
         }
 
 
-        [HttpGet("{id}")]
+        [HttpGet("GetConsultantDetails/{id}")]
         public async Task<RegisteredConsultant> GetConsultantDetails(int id)
         {
             var consultant = await _context.RegisteredConsultant.FindAsync(id);

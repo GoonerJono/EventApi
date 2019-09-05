@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,17 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpGet]
-        public async Task<List<TypeOfService>> GetTypeOfServies()
+        public async Task<List<TypeOfService>> GetTypeOfServices()
         {
             var typeOfServices = await _context.TypeOfService.ToListAsync();
             return typeOfServices;
         }
 
+        [HttpGet("GetTypeOfServiceById/{id}")]
+        public async Task<TypeOfService> GetTypeOfServiceById(int id)
+        {
+            var typeOfServices = await _context.TypeOfService.Where(tos => tos.Id == id).SingleAsync();
+            return typeOfServices;
+        }
     }
 }
