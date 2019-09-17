@@ -35,10 +35,36 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpGet("GetAppointment/{id}")]
-        public async Task<List<Appointment>> GetAppointment(int id)
+        public async Task<Appointment> GetAppointment(int id)
         {
-            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).ToListAsync();
+            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).FirstOrDefaultAsync();
             return consultantAppointments == null ? null : consultantAppointments;
+        }
+
+        [HttpGet("GetAppointmentDetails/{id}")]
+        public async Task<AppointmentDetails> GetAppointmentDetails(int id)
+        {
+            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).FirstOrDefaultAsync();
+            var organizationDetails = await _context.RegisteredOrganization
+                .Where(o => o.Id == consultantAppointments.OrganizationId).FirstAsync();
+            var userDetails = await _context.RegisteredUser.Where(u => u.Id == consultantAppointments.UserId).FirstAsync();
+            var typeOfServiceDetails = await _context.TypeOfService
+                .Where(tos => tos.Id == consultantAppointments.TypeOfServiceId).FirstAsync();
+            var consultantDetails = await _context.RegisteredConsultant
+                .Where(c => c.Id == consultantAppointments.ConsultantId).FirstAsync();
+            var appointmentDetails = new AppointmentDetails
+            {
+                Id = consultantAppointments.Id,
+                Date = consultantAppointments.Date,
+                TicketNumber = consultantAppointments.TicketNumber,
+                ConsultantNameSurname = $"{consultantDetails.Name} {consultantDetails.Surname} ",
+                UserNameSurname = $"{userDetails.Name} {userDetails.Surname} ",
+                OrganizationName = organizationDetails.Name,
+                TypeOfServiceName = typeOfServiceDetails.Name,
+                OrganizationId = organizationDetails.Id
+            };
+            
+            return appointmentDetails == null ? null : appointmentDetails;
         }
 
         [HttpPost("CreateNewAppointment")]

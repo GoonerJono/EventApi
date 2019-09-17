@@ -16,6 +16,7 @@ namespace EventWebApi2.Models
         }
 
         public virtual DbSet<Appointment> Appointment { get; set; }
+        public virtual DbSet<Province> Province { get; set; }
         public virtual DbSet<RegisteredConsultant> RegisteredConsultant { get; set; }
         public virtual DbSet<RegisteredOrganization> RegisteredOrganization { get; set; }
         public virtual DbSet<RegisteredUser> RegisteredUser { get; set; }
@@ -26,14 +27,18 @@ namespace EventWebApi2.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Server=DESKTOP-B9T6A77\\SQLEXPRESS;Database=EventManager;Trusted_Connection=True;");
+                optionsBuilder.UseSqlServer("Data Source=mssqlssd2.zadns.co.za;Initial Catalog=eventmanager;Persist Security Info=True;User ID=jabate;Password=Gooner1478@#");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("Relational:DefaultSchema", "jabate");
+
             modelBuilder.Entity<Appointment>(entity =>
             {
+                entity.ToTable("Appointment", "dbo");
+
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
                 entity.Property(e => e.TicketNumber)
@@ -60,8 +65,20 @@ namespace EventWebApi2.Models
                     .HasConstraintName("FK_Appointment_User");
             });
 
+            modelBuilder.Entity<Province>(entity =>
+            {
+                entity.ToTable("Province", "dbo");
+
+                entity.Property(e => e.ProvinceName)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<RegisteredConsultant>(entity =>
             {
+                entity.ToTable("RegisteredConsultant", "dbo");
+
                 entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
 
                 entity.Property(e => e.Email)
@@ -98,9 +115,15 @@ namespace EventWebApi2.Models
 
             modelBuilder.Entity<RegisteredOrganization>(entity =>
             {
+                entity.ToTable("RegisteredOrganization", "dbo");
+
                 entity.Property(e => e.Address)
                     .IsRequired()
                     .HasMaxLength(250)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.City)
+                    .HasMaxLength(80)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Email)
@@ -111,6 +134,14 @@ namespace EventWebApi2.Models
                 entity.Property(e => e.Hours)
                     .IsRequired()
                     .HasMaxLength(250)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Latitude)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Longitude)
+                    .HasMaxLength(100)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Name)
@@ -125,6 +156,16 @@ namespace EventWebApi2.Models
 
                 entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
 
+                entity.Property(e => e.Suburb)
+                    .HasMaxLength(80)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Province)
+                    .WithMany(p => p.RegisteredOrganization)
+                    .HasForeignKey(d => d.ProvinceId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Province_RegisteredOrganization");
+
                 entity.HasOne(d => d.TypeOfService)
                     .WithMany(p => p.RegisteredOrganization)
                     .HasForeignKey(d => d.TypeOfServiceId)
@@ -134,6 +175,8 @@ namespace EventWebApi2.Models
 
             modelBuilder.Entity<RegisteredUser>(entity =>
             {
+                entity.ToTable("RegisteredUser", "dbo");
+
                 entity.Property(e => e.BirthDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Email)
@@ -145,6 +188,8 @@ namespace EventWebApi2.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.IsVerified).HasColumnName("isVerified");
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -169,6 +214,8 @@ namespace EventWebApi2.Models
 
             modelBuilder.Entity<TypeOfService>(entity =>
             {
+                entity.ToTable("TypeOfService", "dbo");
+
                 entity.Property(e => e.Description)
                     .IsRequired()
                     .HasMaxLength(250)

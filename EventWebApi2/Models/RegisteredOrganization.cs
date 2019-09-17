@@ -19,7 +19,14 @@ namespace EventWebApi2.Models
         public string Hours { get; set; }
         public int PhoneNumber { get; set; }
         public int TypeOfServiceId { get; set; }
+        public bool? IsVerified { get; set; }
+        public string City { get; set; }
+        public string Suburb { get; set; }
+        public int ProvinceId { get; set; }
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
 
+        public Province Province { get; set; }
         public TypeOfService TypeOfService { get; set; }
         public ICollection<Appointment> Appointment { get; set; }
     }
