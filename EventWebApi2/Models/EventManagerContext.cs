@@ -16,6 +16,7 @@ namespace EventWebApi2.Models
         }
 
         public virtual DbSet<Appointment> Appointment { get; set; }
+        public virtual DbSet<OrganizationTimes> OrganizationTimes { get; set; }
         public virtual DbSet<Province> Province { get; set; }
         public virtual DbSet<RegisteredConsultant> RegisteredConsultant { get; set; }
         public virtual DbSet<RegisteredOrganization> RegisteredOrganization { get; set; }
@@ -27,7 +28,7 @@ namespace EventWebApi2.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-                optionsBuilder.UseSqlServer("Data Source=mssqlssd2.zadns.co.za;Initial Catalog=eventmanager;Persist Security Info=True;User ID=jabate;Password=Gooner1478@#");
+                optionsBuilder.UseSqlServer("Data Source=mssqlssd2.zadns.co.za;Initial Catalog=EventManager;Persist Security Info=True;User ID=jabate;Password=Gooner1478@#");
             }
         }
 
@@ -63,6 +64,31 @@ namespace EventWebApi2.Models
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Appointment_User");
+            });
+
+            modelBuilder.Entity<OrganizationTimes>(entity =>
+            {
+                entity.ToTable("OrganizationTimes", "dbo");
+
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.CloseTime).HasColumnType("time(4)");
+
+                entity.Property(e => e.OpenTime).HasColumnType("time(4)");
+
+                entity.Property(e => e.OrganizationEndDay)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.OrganizationStartDay)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.OrganizationTimes)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OrganizationTimes_RegisteredOrganization");
             });
 
             modelBuilder.Entity<Province>(entity =>
@@ -129,11 +155,6 @@ namespace EventWebApi2.Models
                 entity.Property(e => e.Email)
                     .IsRequired()
                     .HasMaxLength(75)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Hours)
-                    .IsRequired()
-                    .HasMaxLength(250)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Latitude)

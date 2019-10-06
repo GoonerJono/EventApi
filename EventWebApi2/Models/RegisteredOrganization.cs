@@ -8,6 +8,7 @@ namespace EventWebApi2.Models
         public RegisteredOrganization()
         {
             Appointment = new HashSet<Appointment>();
+            OrganizationTimes = new HashSet<OrganizationTimes>();
         }
 
         public int Id { get; set; }
@@ -16,7 +17,6 @@ namespace EventWebApi2.Models
         public string Password { get; set; }
         public DateTime RegisteredDate { get; set; }
         public string Address { get; set; }
-        public string Hours { get; set; }
         public int PhoneNumber { get; set; }
         public int TypeOfServiceId { get; set; }
         public bool? IsVerified { get; set; }
@@ -29,5 +29,6 @@ namespace EventWebApi2.Models
         public Province Province { get; set; }
         public TypeOfService TypeOfService { get; set; }
         public ICollection<Appointment> Appointment { get; set; }
+        public ICollection<OrganizationTimes> OrganizationTimes { get; set; }
     }
 }
