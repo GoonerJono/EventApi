@@ -70,8 +70,6 @@ namespace EventWebApi2.Models
             {
                 entity.ToTable("OrganizationTimes", "dbo");
 
-                entity.Property(e => e.Id).ValueGeneratedNever();
-
                 entity.Property(e => e.CloseTime).HasColumnType("time(4)");
 
                 entity.Property(e => e.OpenTime).HasColumnType("time(4)");
