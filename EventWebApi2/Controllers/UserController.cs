@@ -26,15 +26,17 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpPost]
-        public async Task<int> CreateNewUser(RegisteredUser registeredUser)
+        public async Task<string> CreateNewUser(RegisteredUser registeredUser)
         {
-         _context.RegisteredUser.Add(registeredUser);
+         var userId = _context.RegisteredUser.Add(registeredUser);
           if (await _context.SaveChangesAsync() > 0)
            {
              MailMessage mm = new MailMessage();
              mm.To.Add("jsabate014@gmail.com");
              mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
-             mm.Body = "Test";
+             mm.Body =
+                 $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
+             // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
              mm.Subject = "Verification";
              SmtpClient smcl = new SmtpClient();
              smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
@@ -42,10 +44,23 @@ namespace EventWebApi2.Controllers
              smcl.Port = 25;
              smcl.EnableSsl = true;
              smcl.Send(mm);
-             return 1;
+             return "Registered";
                 // var email = "mail@dynamicprogrammers.co.za";
            }
-           return 0;
+           return "Not Registered";
+        }
+
+        [HttpGet("VerifyUserDetails/{id}")]
+        public async Task<string> VerifyUserDetails(int id)
+        {
+            var userDetails = await _context.RegisteredUser.FindAsync(id);
+            userDetails.IsVerified = true;
+             _context.RegisteredUser.Update(userDetails);
+             if (await _context.SaveChangesAsync() > 0)
+             {
+                 return "User is verified";
+             }
+             return "User was not verified";
         }
 
         [HttpPut("UpdateUser")]
