@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Remotion.Linq.Clauses;
 
 namespace EventWebApi2.Controllers
 {
@@ -19,10 +20,32 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpGet("GetOrganizationDetails/{id}")]
-        public async Task<RegisteredOrganization> GetOrganizationDetails(int id)
+        public async Task<OrganizationDetails> GetOrganizationDetails(int id)
         {
             var registeredOrganization = await _context.RegisteredOrganization.FindAsync(id);
-            return registeredOrganization == null ? null : registeredOrganization;
+            var organizationTimes = await _context.OrganizationTimes.Where(o => o.OrganizationId == id).FirstAsync();
+            var province = await _context.Province.FindAsync(registeredOrganization.ProvinceId);
+            var organizationDetail = new OrganizationDetails()
+            {
+                OrganizationId = registeredOrganization.Id,
+                OrganizationEndDay = organizationTimes.OrganizationEndDay,
+                Name = registeredOrganization.Name,
+                OpenTime = organizationTimes.OpenTime,
+                OrganizationStartDay = organizationTimes.OrganizationStartDay,
+                Province = province.ProvinceName,
+                CloseTime = organizationTimes.CloseTime,
+                TypeOfServiceId = registeredOrganization.TypeOfServiceId,
+                Address = registeredOrganization.Address,
+                City = registeredOrganization.City,
+                Email = registeredOrganization.Email,
+                IsVerified = registeredOrganization.IsVerified,
+                Latitude = registeredOrganization.Latitude,
+                Longitude = registeredOrganization.Longitude,
+                PhoneNumber = registeredOrganization.PhoneNumber,
+                RegisteredDate = registeredOrganization.RegisteredDate,
+                Suburb = registeredOrganization.Suburb,
+            };
+            return organizationDetail == null ? null : organizationDetail;
         }
 
         [HttpGet("GetOrganizationsByTypeofService/{id}")]
@@ -32,7 +55,7 @@ namespace EventWebApi2.Controllers
             return registeredOrganization == null ? null : registeredOrganization;
         }
 
-        [HttpPost]
+        [HttpPost("CreateNewOrganization/")]
         public async Task<int> CreateNewOrganization(RegisteredOrganization registeredOrganization)
         {
 
@@ -44,7 +67,19 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
-        [HttpPut]
+        [HttpPost("CreateOrganizationTime/")]
+        public async Task<int> CreateOrganizationTime(OrganizationTimes organizationTimes)
+        {
+            _context.OrganizationTimes.Add(organizationTimes);
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return 1;
+            }
+            return 0;
+        }
+
+
+        [HttpPut("UpdateOrganization/")]
         public async Task<int> UpdateOrganization(RegisteredOrganization registeredOrganization)
         {
 

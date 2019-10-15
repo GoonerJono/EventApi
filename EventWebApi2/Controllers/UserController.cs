@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Net;
+using System.Net.Mail;
+using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,13 +28,24 @@ namespace EventWebApi2.Controllers
         [HttpPost]
         public async Task<int> CreateNewUser(RegisteredUser registeredUser)
         {
-
-            _context.RegisteredUser.Add(registeredUser);
-            if (await _context.SaveChangesAsync() > 0)
-            {
-                return 1;
-            }
-            return 0;
+         _context.RegisteredUser.Add(registeredUser);
+          if (await _context.SaveChangesAsync() > 0)
+           {
+             MailMessage mm = new MailMessage();
+             mm.To.Add("jsabate014@gmail.com");
+             mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+             mm.Body = "Test";
+             mm.Subject = "Verification";
+             SmtpClient smcl = new SmtpClient();
+             smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
+             smcl.Host = "bl4n1.zadns.co.za";
+             smcl.Port = 25;
+             smcl.EnableSsl = true;
+             smcl.Send(mm);
+             return 1;
+                // var email = "mail@dynamicprogrammers.co.za";
+           }
+           return 0;
         }
 
         [HttpPut("UpdateUser")]

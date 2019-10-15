@@ -126,6 +126,11 @@ namespace EventWebApi2.Models
                     .HasMaxLength(250)
                     .IsUnicode(false);
 
+                entity.Property(e => e.PhoneNumber)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.Surname)
                     .IsRequired()
                     .HasMaxLength(150)
@@ -173,6 +178,11 @@ namespace EventWebApi2.Models
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
+                entity.Property(e => e.PhoneNumber)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
 
                 entity.Property(e => e.Suburb)
@@ -197,6 +207,11 @@ namespace EventWebApi2.Models
                 entity.ToTable("RegisteredUser", "dbo");
 
                 entity.Property(e => e.BirthDate).HasColumnType("datetime");
+
+                entity.Property(e => e.CellphoneNumber)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.Email)
                     .IsRequired()

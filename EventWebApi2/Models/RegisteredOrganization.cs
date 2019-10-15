@@ -17,7 +17,7 @@ namespace EventWebApi2.Models
         public string Password { get; set; }
         public DateTime RegisteredDate { get; set; }
         public string Address { get; set; }
-        public int PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; }
         public int TypeOfServiceId { get; set; }
         public bool? IsVerified { get; set; }
         public string City { get; set; }

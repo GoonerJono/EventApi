@@ -75,6 +75,8 @@ namespace EventWebApi2.Controllers
                 var appointmentApproved = CheckAppointment(appointment.OrganizationId, appointment.Date);
                 if (appointmentApproved.Equals("yes"))
                 {
+                    var ticketNumber = CreateTicket(appointment.OrganizationId);
+                    appointment.TicketNumber = ticketNumber;
                     _context.Appointment.Add(appointment);
                     if (await _context.SaveChangesAsync() > 0)
                     {
@@ -87,6 +89,26 @@ namespace EventWebApi2.Controllers
             {
                 Console.WriteLine(e);
                 throw;
+            }
+            
+        }
+
+        private string CreateTicket(int organizationId)
+        {
+            Random random = new Random();
+            var organizationName = _context.RegisteredOrganization.Where(o => o.Id == organizationId)
+                .Select(o => o.Name).First();
+            var ticketNumber = organizationName[0]+ $"{random.Next()}";
+            var appointmentsTickets = _context.Appointment.Where(o => o.OrganizationId == organizationId)
+                .Select(a => a.TicketNumber).ToList();
+            if (!appointmentsTickets.Contains(ticketNumber))
+            {
+                return ticketNumber;
+            }
+            else
+            {
+               ticketNumber = organizationName[0] + $"{random.Next(1)}";
+                return ticketNumber;
             }
             
         }
