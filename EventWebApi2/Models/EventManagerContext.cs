@@ -16,6 +16,7 @@ namespace EventWebApi2.Models
         }
 
         public virtual DbSet<Appointment> Appointment { get; set; }
+        public virtual DbSet<EmailTemplate> EmailTemplate { get; set; }
         public virtual DbSet<OrganizationTimes> OrganizationTimes { get; set; }
         public virtual DbSet<Province> Province { get; set; }
         public virtual DbSet<RegisteredConsultant> RegisteredConsultant { get; set; }
@@ -64,6 +65,17 @@ namespace EventWebApi2.Models
                     .HasForeignKey(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Appointment_User");
+            });
+
+            modelBuilder.Entity<EmailTemplate>(entity =>
+            {
+                entity.ToTable("emailTemplate", "dbo");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.EmailTemplate1)
+                    .HasColumnName("emailTemplate")
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<OrganizationTimes>(entity =>

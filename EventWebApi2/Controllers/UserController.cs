@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace EventWebApi2.Controllers
 {
@@ -26,28 +29,43 @@ namespace EventWebApi2.Controllers
         }
 
         [HttpPost]
-        public async Task<string> CreateNewUser(RegisteredUser registeredUser)
+        public async Task<int> CreateNewUser(RegisteredUser registeredUser)
         {
-         var userId = _context.RegisteredUser.Add(registeredUser);
-          if (await _context.SaveChangesAsync() > 0)
-           {
-             MailMessage mm = new MailMessage();
-             mm.To.Add("jsabate014@gmail.com");
-             mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
-             mm.Body =
-                 $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
-             // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
-             mm.Subject = "Verification";
-             SmtpClient smcl = new SmtpClient();
-             smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
-             smcl.Host = "bl4n1.zadns.co.za";
-             smcl.Port = 25;
-             smcl.EnableSsl = true;
-             smcl.Send(mm);
-             return "Registered";
-                // var email = "mail@dynamicprogrammers.co.za";
-           }
-           return "Not Registered";
+            var userNames = await _context.RegisteredUser.Select(u=> u.Username).ToListAsync();
+            var userEmail = await _context.RegisteredUser.Select(u=> u.Email).ToListAsync();
+            if (!userNames.Contains(registeredUser.Username) && !userEmail.Contains(registeredUser.Email))
+            {
+                var userId = _context.RegisteredUser.Add(registeredUser);
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    SendVerificationEmail(registeredUser, userId);
+                    return 1;
+                }
+                return 0;
+            }
+
+            return 2;
+        }
+
+        private void SendVerificationEmail(RegisteredUser registeredUser, EntityEntry<RegisteredUser> userId)
+        {
+            MailMessage mm = new MailMessage();
+            var body =  _context.EmailTemplate.Where(e => e.Id == 1).Select(e => e.EmailTemplate1).First();
+           var body2 = body.Replace("{UserEmail}", registeredUser.Email);
+           var body3 = body2.Replace("{userId}", userId.Entity.Id.ToString());
+            mm.To.Add(registeredUser.Email);
+            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.Body = body3;
+             //   $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
+            // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
+            mm.IsBodyHtml = true;
+            mm.Subject = "Verification";
+            SmtpClient smcl = new SmtpClient();
+            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Port = 25;
+            smcl.EnableSsl = true;
+            smcl.Send(mm);
         }
 
         [HttpGet("VerifyUserDetails/{id}")]

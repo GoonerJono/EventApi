@@ -27,11 +27,21 @@ namespace EventWebApi2.Controllers
             var userid = await _context.RegisteredUser
                 .Where(r => r.Username == registeredUser.Username && r.Password == registeredUser.Password)
                 .Select(r => r.Id).FirstOrDefaultAsync();
-            if (userid == 0)
+            if (userid != 0)
             {
-                return 0;
+                var verified = await _context.RegisteredUser
+                    .Where(r => r.Id == userid)
+                    .Select(r => r.IsVerified).FirstOrDefaultAsync();
+                if (verified == true)
+                {
+                    return Convert.ToInt32(userid);
+                }
+
+                return 2;
             }
-            return Convert.ToInt32(userid);
+
+            return 0;
+
         }
 
     }
