@@ -23,7 +23,7 @@ namespace EventWebApi2.Controllers
         [HttpGet("GetAppointmentsUserId/{id}")]
         public async Task<List<Appointment>> GetAppointmentsUserId(int id)
         {
-            var userAppointments = await _context.Appointment.Where(u=> u.UserId == id).ToListAsync();
+            var userAppointments = await _context.Appointment.Where(u=> u.UserId == id && u.Date >= DateTime.Today).ToListAsync();
             return userAppointments == null ? null : userAppointments;
         }
 
@@ -125,12 +125,22 @@ namespace EventWebApi2.Controllers
             {
                 var appointmentsTaken = _context.Appointment.Where(o => o.OrganizationId == appointmentOrganizationId)
                     .Select(a => a.Date).ToList();
-                if (!appointmentsTaken.Contains(appointmentDate))
+                var listofHours = new List<string>();
+                foreach (var AppointmentTime in appointmentsTaken)
                 {
+                    
+                    var hour = AppointmentTime.ToString("MM/dd/yyyy HH:mm");
+                    listofHours.Add(hour);
+                   
+                }
+
+                var test2 = appointmentDate.ToString("MM/dd/yyyy HH:mm");
+                if (!listofHours.Contains(appointmentDate.ToString("MM/dd/yyyy HH:mm")))
+                {
+
                     var test = "yes";
                     return test;
                 }
-
                 return "Time slot Taken";
             }
             else
