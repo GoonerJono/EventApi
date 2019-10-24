@@ -8,6 +8,7 @@ namespace EventWebApi2.Models
         public RegisteredOrganization()
         {
             Appointment = new HashSet<Appointment>();
+            OrganizationSub = new HashSet<OrganizationSub>();
             OrganizationTimes = new HashSet<OrganizationTimes>();
         }
 
@@ -29,6 +30,7 @@ namespace EventWebApi2.Models
         public Province Province { get; set; }
         public TypeOfService TypeOfService { get; set; }
         public ICollection<Appointment> Appointment { get; set; }
+        public ICollection<OrganizationSub> OrganizationSub { get; set; }
         public ICollection<OrganizationTimes> OrganizationTimes { get; set; }
     }
 }

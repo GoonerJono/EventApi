@@ -16,7 +16,9 @@ namespace EventWebApi2.Models
         }
 
         public virtual DbSet<Appointment> Appointment { get; set; }
+        public virtual DbSet<AppointmentRejection> AppointmentRejection { get; set; }
         public virtual DbSet<EmailTemplate> EmailTemplate { get; set; }
+        public virtual DbSet<OrganizationSub> OrganizationSub { get; set; }
         public virtual DbSet<OrganizationTimes> OrganizationTimes { get; set; }
         public virtual DbSet<Province> Province { get; set; }
         public virtual DbSet<RegisteredConsultant> RegisteredConsultant { get; set; }
@@ -43,6 +45,10 @@ namespace EventWebApi2.Models
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
+                entity.Property(e => e.Reason)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.TicketNumber)
                     .IsRequired()
                     .HasMaxLength(50)
@@ -67,6 +73,24 @@ namespace EventWebApi2.Models
                     .HasConstraintName("FK_Appointment_User");
             });
 
+            modelBuilder.Entity<AppointmentRejection>(entity =>
+            {
+                entity.ToTable("AppointmentRejection", "dbo");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Reason)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Appointment)
+                    .WithMany(p => p.AppointmentRejection)
+                    .HasForeignKey(d => d.AppointmentId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_AppointmentRejection_Appointment");
+            });
+
             modelBuilder.Entity<EmailTemplate>(entity =>
             {
                 entity.ToTable("emailTemplate", "dbo");
@@ -76,6 +100,19 @@ namespace EventWebApi2.Models
                 entity.Property(e => e.EmailTemplate1)
                     .HasColumnName("emailTemplate")
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<OrganizationSub>(entity =>
+            {
+                entity.ToTable("OrganizationSub", "dbo");
+
+                entity.Property(e => e.IsPaid).HasColumnName("isPaid");
+
+                entity.HasOne(d => d.Organisation)
+                    .WithMany(p => p.OrganizationSub)
+                    .HasForeignKey(d => d.OrganisationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_OrganizationSub_RegisteredOrganization");
             });
 
             modelBuilder.Entity<OrganizationTimes>(entity =>
