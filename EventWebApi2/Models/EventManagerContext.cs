@@ -60,6 +60,12 @@ namespace EventWebApi2.Models
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Appointment_RegisteredConsultant");
 
+                entity.HasOne(d => d.Organization)
+                    .WithMany(p => p.Appointment)
+                    .HasForeignKey(d => d.OrganizationId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Appointment_RegisteredOrganization");
+
                 entity.HasOne(d => d.TypeOfService)
                     .WithMany(p => p.Appointment)
                     .HasForeignKey(d => d.TypeOfServiceId)

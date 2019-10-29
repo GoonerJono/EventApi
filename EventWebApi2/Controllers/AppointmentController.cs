@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using EventWebApi2.Models;
 using Microsoft.AspNetCore.Http;
@@ -23,46 +25,58 @@ namespace EventWebApi2.Controllers
         [HttpGet("GetAppointmentsUserId/{id}")]
         public async Task<List<Appointment>> GetAppointmentsUserId(int id)
         {
-            var userAppointments = await _context.Appointment.Where(u=> u.UserId == id && u.Date >= DateTime.Today).ToListAsync();
+            var userAppointments = await _context.Appointment.Where(u=> u.UserId == id && u.Date >= DateTime.Today && u.IsAccepted == true).ToListAsync();
             return userAppointments == null ? null : userAppointments;
         }
 
         [HttpGet("GetAppointmentsConsultantId/{id}")]
         public async Task<List<Appointment>> GetAppointmentsConsultantId(int id)
         {
-            var consultantAppointments = await _context.Appointment.Where(u => u.UserId == id).ToListAsync();
+            var consultantAppointments = await _context.Appointment.Where(u => u.UserId == id && u.IsAccepted == true).ToListAsync();
             return consultantAppointments == null ? null : consultantAppointments;
         }
 
         [HttpGet("GetAppointment/{id}")]
         public async Task<Appointment> GetAppointment(int id)
         {
-            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).FirstOrDefaultAsync();
+            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id && a.IsAccepted == true).FirstOrDefaultAsync();
             return consultantAppointments == null ? null : consultantAppointments;
+        }
+
+        [HttpGet("GetRejectedAppointmentByUserId/{id}")]
+        public async Task<List<AppointmentDetails>> GetRejectedAppointmentByUserId(int id)
+        {
+            var rejectedAppointments = await _context.Appointment.Where(a => a.UserId == id && a.IsRejected == true).Select(a=> new AppointmentDetails
+            {
+                Id = a.Id,
+                Date = a.Date,
+                OrganizationId = a.OrganizationId,
+                ConsultantNameSurname = $"{a.Consultant.Name} {a.Consultant.Surname}",
+                OrganizationName = a.Organization.Name,
+                TicketNumber = a.TicketNumber,
+                TypeOfServiceName = a.TypeOfService.Name,
+                UserNameSurname = $"{a.User.Name} {a.User.Surname}",
+                Reason =  a.AppointmentRejection.Where(b=> b.AppointmentId == a.Id).Select(c => c.Reason).FirstOrDefault()
+            }).ToListAsync();
+            return rejectedAppointments == null ? null : rejectedAppointments;
         }
 
         [HttpGet("GetAppointmentDetails/{id}")]
         public async Task<AppointmentDetails> GetAppointmentDetails(int id)
         {
-            var consultantAppointments = await _context.Appointment.Where(a => a.Id == id).FirstOrDefaultAsync();
-            var organizationDetails = await _context.RegisteredOrganization
-                .Where(o => o.Id == consultantAppointments.OrganizationId).FirstAsync();
-            var userDetails = await _context.RegisteredUser.Where(u => u.Id == consultantAppointments.UserId).FirstAsync();
-            var typeOfServiceDetails = await _context.TypeOfService
-                .Where(tos => tos.Id == consultantAppointments.TypeOfServiceId).FirstAsync();
-            var consultantDetails = await _context.RegisteredConsultant
-                .Where(c => c.Id == consultantAppointments.ConsultantId).FirstAsync();
-            var appointmentDetails = new AppointmentDetails
+           var appointmentDetails = await _context.Appointment.Where(a => a.Id == id && a.IsAccepted == true).Select(a =>  
+           new AppointmentDetails
             {
-                Id = consultantAppointments.Id,
-                Date = consultantAppointments.Date,
-                TicketNumber = consultantAppointments.TicketNumber,
-                ConsultantNameSurname = $"{consultantDetails.Name} {consultantDetails.Surname} ",
-                UserNameSurname = $"{userDetails.Name} {userDetails.Surname} ",
-                OrganizationName = organizationDetails.Name,
-                TypeOfServiceName = typeOfServiceDetails.Name,
-                OrganizationId = organizationDetails.Id
-            };
+                Id = a.Id,
+                Date = a.Date,
+                TicketNumber = a.TicketNumber,
+                ConsultantNameSurname = $"{a.Consultant.Name} {a.Consultant.Surname} ",
+                UserNameSurname = $"{a.User.Name} {a.User.Surname} ",
+                OrganizationName = a.Organization.Name,
+                TypeOfServiceName = a.TypeOfService.Name,
+                OrganizationId = a.Id,
+                Reason = a.Reason
+            }).FirstOrDefaultAsync();
             
             return appointmentDetails == null ? null : appointmentDetails;
         }
@@ -70,8 +84,6 @@ namespace EventWebApi2.Controllers
         [HttpPost("CreateNewAppointment")]
         public async Task<int> CreateNewAppointment(Appointment appointment)
         {
-            try
-            {
                 var appointmentApproved = CheckAppointment(appointment.OrganizationId, appointment.Date);
                 if (appointmentApproved.Equals("yes"))
                 {
@@ -83,14 +95,12 @@ namespace EventWebApi2.Controllers
                         return 1;
                     }
                 }
-                return 0;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            
+                else if (appointmentApproved.Equals("Time slot Taken"))
+                {
+                    return 2;
+                }
+                   return 3;
+                
         }
 
         private string CreateTicket(int organizationId)
@@ -98,7 +108,7 @@ namespace EventWebApi2.Controllers
             Random random = new Random();
             var organizationName = _context.RegisteredOrganization.Where(o => o.Id == organizationId)
                 .Select(o => o.Name).First();
-            var ticketNumber = organizationName[0]+ $"{random.Next()}";
+            var ticketNumber = organizationName[0]+ $"{random.Next(0,1000)}";
             var appointmentsTickets = _context.Appointment.Where(o => o.OrganizationId == organizationId)
                 .Select(a => a.TicketNumber).ToList();
             if (!appointmentsTickets.Contains(ticketNumber))
@@ -133,13 +143,9 @@ namespace EventWebApi2.Controllers
                     listofHours.Add(hour);
                    
                 }
-
-                var test2 = appointmentDate.ToString("MM/dd/yyyy HH:mm");
                 if (!listofHours.Contains(appointmentDate.ToString("MM/dd/yyyy HH:mm")))
                 {
-
-                    var test = "yes";
-                    return test;
+                    return "yes";
                 }
                 return "Time slot Taken";
             }
@@ -195,6 +201,56 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
+        private async Task SendEmail(int consultantId, int userId)
+        {
+            var consultantDetails = await _context.RegisteredConsultant.Where(c => c.Id == consultantId).FirstAsync();
+            var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
+            MailMessage mm = new MailMessage();
+            var body = await _context.EmailTemplate.Where(e => e.Id == 1).Select(e => e.EmailTemplate1).FirstAsync();
+            var body2 = body.Replace("{UserEmail}", userDetails.Email);
+            var body3 = body2.Replace("{userId}", userDetails.Id.ToString());
+            mm.To.Add(consultantDetails.Email);
+            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.Body = body3;
+            //   $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
+            // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
+            mm.IsBodyHtml = true;
+            mm.Subject = "Verification";
+            SmtpClient smcl = new SmtpClient();
+            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Port = 25;
+            smcl.EnableSsl = true;
+            smcl.Send(mm);
 
+        }
+
+        [HttpGet("AcceptAppointment/{id}")]
+        public async Task<string> AcceptAppointment(int id)
+        {
+            var appointmentDetails = await _context.Appointment.FindAsync(id);
+            appointmentDetails.IsAccepted = true;
+            appointmentDetails.IsRejected = false;
+            _context.Appointment.Update(appointmentDetails);
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return "Appointment Accepted";
+            }
+            return "Appointment Not Accepted";
+        }
+
+        [HttpGet("DeclineAppointment/{id}")]
+        public async Task<string> DeclineAppointment(int id)
+        {
+            var appointmentDetails = await _context.Appointment.FindAsync(id);
+            appointmentDetails.IsAccepted = false;
+            appointmentDetails.IsRejected = true;
+            _context.Appointment.Update(appointmentDetails);
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                return "Appointment Declined";
+            }
+            return "Appointment Not Declined";
+        }
     }
 }

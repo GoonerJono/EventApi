@@ -5,6 +5,11 @@ namespace EventWebApi2.Models
 {
     public partial class RegisteredConsultant
     {
+        public RegisteredConsultant()
+        {
+            Appointment = new HashSet<Appointment>();
+        }
+
         public int Id { get; set; }
         public int? OrganisationId { get; set; }
         public string Name { get; set; }
@@ -15,5 +20,7 @@ namespace EventWebApi2.Models
         public string Email { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+
+        public ICollection<Appointment> Appointment { get; set; }
     }
 }

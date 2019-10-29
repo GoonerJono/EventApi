@@ -15,6 +15,7 @@ namespace EventWebApi2.Models
         public string UserNameSurname { get; set; }
         public string ConsultantNameSurname { get; set; }
         public int OrganizationId { get; set; }
+        public string Reason { get; set; }
 
     }
 }

@@ -21,7 +21,8 @@ namespace EventWebApi2.Models
         public bool? IsAccepted { get; set; }
         public bool? IsRejected { get; set; }
 
-        public RegisteredOrganization Consultant { get; set; }
+        public RegisteredConsultant Consultant { get; set; }
+        public RegisteredOrganization Organization { get; set; }
         public TypeOfService TypeOfService { get; set; }
         public RegisteredUser User { get; set; }
         public ICollection<AppointmentRejection> AppointmentRejection { get; set; }
