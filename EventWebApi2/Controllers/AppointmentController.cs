@@ -74,7 +74,7 @@ namespace EventWebApi2.Controllers
                 UserNameSurname = $"{a.User.Name} {a.User.Surname} ",
                 OrganizationName = a.Organization.Name,
                 TypeOfServiceName = a.TypeOfService.Name,
-                OrganizationId = a.Id,
+                OrganizationId = a.OrganizationId,
                 Reason = a.Reason
             }).FirstOrDefaultAsync();
             
