@@ -90,10 +90,11 @@ namespace EventWebApi2.Controllers
                 {
                     var ticketNumber = CreateTicket(appointment.OrganizationId);
                     appointment.TicketNumber = ticketNumber;
-                    var appointmentId = _context.Appointment.Add(appointment);
+                    appointment.Time = appointment.Date.ToString("HH:mm");
+                var appointmentId = _context.Appointment.Add(appointment);
                     if (await _context.SaveChangesAsync() > 0)
                     {
-                       await SendEmail(appointment.ConsultantId, appointment.UserId, appointmentId.Entity.Id);
+                       await SendEmail(appointment.ConsultantId, appointment.UserId, appointmentId.Entity.Id,2);
                         return 1;
                     }
                 }
@@ -203,17 +204,25 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
-        private async Task SendEmail(int consultantId, int userId, int appointmentId)
+        [HttpGet("RequestAppointmentCancellation/{id}")]
+        public async Task<int> RequestAppointmentCancellation(int id)
+        {
+            var appointment = await _context.Appointment.FindAsync(id);
+            await SendEmail2(appointment.ConsultantId, appointment.UserId, id, 3);
+            return 1;
+        }
+
+        private async Task SendEmail(int consultantId, int userId, int appointmentId,int emailBodyId)
         {
             var consultantDetails = await _context.RegisteredConsultant.Where(c => c.Id == consultantId).FirstAsync();
             var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
             MailMessage mm = new MailMessage();
-            var body = await GetBody(appointmentId);
+            var body = await GetBody(appointmentId, emailBodyId);
             mm.To.Add(consultantDetails.Email);
             mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
             mm.Body = body;
             mm.IsBodyHtml = true;
-            mm.Subject = "Verification";
+            mm.Subject = "New Appointment";
             SmtpClient smcl = new SmtpClient();
             smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
             smcl.Host = "bl4n1.zadns.co.za";
@@ -223,9 +232,49 @@ namespace EventWebApi2.Controllers
 
         }
 
-        private async Task<string> GetBody(int appointmentId)
+        private async Task SendEmail2(int consultantId, int userId, int appointmentId, int emailBodyId)
         {
-            var body = await _context.EmailTemplate.Where(e => e.Id == 2).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
+            var consultantDetails = await _context.RegisteredConsultant.Where(c => c.Id == consultantId).FirstAsync();
+            var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
+            MailMessage mm = new MailMessage();
+            var body = await GetBody2(appointmentId, emailBodyId);
+            mm.To.Add(consultantDetails.Email);
+            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.Body = body;
+            mm.IsBodyHtml = true;
+            mm.Subject = "Appointment Cancellation Request";
+            SmtpClient smcl = new SmtpClient();
+            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Port = 25;
+            smcl.EnableSsl = true;
+            smcl.Send(mm);
+
+        }
+
+        private async Task SendEmail3(int consultantId, int userId, int appointmentId, int emailBodyId, string choice)
+        {
+            var consultantDetails = await _context.RegisteredConsultant.Where(c => c.Id == consultantId).FirstAsync();
+            var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
+            MailMessage mm = new MailMessage();
+            var body = await GetBody3(appointmentId, emailBodyId, choice);
+            mm.To.Add(consultantDetails.Email);
+            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.Body = body;
+            mm.IsBodyHtml = true;
+            mm.Subject = "Appointment Accepted or Cancelled";
+            SmtpClient smcl = new SmtpClient();
+            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Port = 25;
+            smcl.EnableSsl = true;
+            smcl.Send(mm);
+
+        }
+
+        private async Task<string> GetBody(int appointmentId,int emailBodyId)
+        {
+            var body = await _context.EmailTemplate.Where(e => e.Id == emailBodyId).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
             var appointmentDetails = await _context.Appointment.Where(a => a.Id == appointmentId).Select(a => new Appointment
             {
                 Id = a.Id,
@@ -246,6 +295,50 @@ namespace EventWebApi2.Controllers
             return body;
         }
 
+        private async Task<string> GetBody2(int appointmentId, int emailBodyId)
+        {
+            var body = await _context.EmailTemplate.Where(e => e.Id == emailBodyId).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
+            var appointmentDetails = await _context.Appointment.Where(a => a.Id == appointmentId).Select(a => new Appointment
+            {
+                Id = a.Id,
+                User = a.User,
+                Date = a.Date,
+                Reason = a.Reason
+            }).FirstOrDefaultAsync();
+            var emailTokens = new Dictionary<string, string>()
+            {
+                ["{userName}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
+                ["{ticketnumber}"] = appointmentDetails.Reason,
+                ["{appointmentId}"] = appointmentDetails.Id.ToString()
+            };
+            foreach (var token in emailTokens) body = body.Replace($"{token.Key}", token.Value);
+
+            return body;
+        }
+
+        private async Task<string> GetBody3(int appointmentId, int emailBodyId,string choice)
+        {
+            var body = await _context.EmailTemplate.Where(e => e.Id == emailBodyId).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
+            var appointmentDetails = await _context.Appointment.Where(a => a.Id == appointmentId).Select(a => new Appointment
+            {
+                Id = a.Id,
+                User = a.User,
+                Date = a.Date,
+                Reason = a.Reason,
+                Consultant = a.Consultant,
+            }).FirstOrDefaultAsync();
+            var emailTokens = new Dictionary<string, string>()
+            {
+                ["{userName}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
+                ["{ticketnumber}"] = appointmentDetails.Reason,
+                ["{acceptedOrCancel}"] = choice,
+                ["{consultant}"] = $"{appointmentDetails.Consultant.Name} {appointmentDetails.Consultant.Surname}",
+            };
+            foreach (var token in emailTokens) body = body.Replace($"{token.Key}", token.Value);
+
+            return body;
+        }
+
         [HttpGet("AcceptAppointment/{id}")]
         public async Task<string> AcceptAppointment(int id)
         {
@@ -255,6 +348,7 @@ namespace EventWebApi2.Controllers
             _context.Appointment.Update(appointmentDetails);
             if (await _context.SaveChangesAsync() > 0)
             {
+                await SendEmail3(appointmentDetails.ConsultantId, appointmentDetails.UserId, appointmentDetails.Id, 4, "Accepted");
                 return "Appointment Accepted";
             }
             return "Appointment Not Accepted";
@@ -274,7 +368,44 @@ namespace EventWebApi2.Controllers
             });
             if (await _context.SaveChangesAsync() > 0)
             {
+                await SendEmail3(appointmentDetails.ConsultantId, appointmentDetails.UserId, appointmentDetails.Id, 4, "Declined");
                 return "Appointment Declined";
+            }
+            return "Appointment Not Declined";
+        }
+
+        [HttpGet("AcceptCancellationAppointment/{id}")]
+        public async Task<string> AcceptCancellationAppointment(int id)
+        {
+            var appointmentDetails = await _context.Appointment.FindAsync(id);
+            appointmentDetails.IsAccepted = false;
+            appointmentDetails.IsRejected = true;
+            _context.Appointment.Update(appointmentDetails);
+            _context.AppointmentRejection.Add(new AppointmentRejection
+            {
+                AppointmentId = id,
+                Reason = "User Unavailable for appointment"
+            });
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                await SendEmail3(appointmentDetails.ConsultantId, appointmentDetails.UserId,appointmentDetails.Id, 4, "Accepted");
+                return "Appointment Declined";
+            }
+            return "Appointment Not Declined";
+        }
+
+        [HttpGet("AcceptCancellationAppointment/{id}")]
+        public async Task<string> DeclineCancellationAppointment(int id)
+        {
+            var appointmentDetails = await _context.Appointment.FindAsync(id);
+            appointmentDetails.IsAccepted = true;
+            appointmentDetails.IsRejected = false;
+            _context.Appointment.Update(appointmentDetails);
+            if (await _context.SaveChangesAsync() > 0)
+            {
+                await SendEmail3(appointmentDetails.ConsultantId, appointmentDetails.UserId, appointmentDetails.Id, 4, "Declined");
+                return "Appointment Declined";
+
             }
             return "Appointment Not Declined";
         }

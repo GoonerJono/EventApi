@@ -22,38 +22,45 @@ namespace EventWebApi2.Controllers
         [HttpGet("GetOrganizationDetails/{id}")]
         public async Task<OrganizationDetails> GetOrganizationDetails(int id)
         {
-            var registeredOrganization = await _context.RegisteredOrganization.FindAsync(id);
-            var organizationTimes = await _context.OrganizationTimes.Where(o => o.OrganizationId == id).FirstAsync();
-            var province = await _context.Province.FindAsync(registeredOrganization.ProvinceId);
-            var organizationDetail = new OrganizationDetails()
+
+            var organizationDetail = await _context.RegisteredOrganization.Where(o => o.Id == id).Select(a => new OrganizationDetails
             {
-                OrganizationId = registeredOrganization.Id,
-                OrganizationEndDay = organizationTimes.OrganizationEndDay,
-                Name = registeredOrganization.Name,
-                OpenTime = organizationTimes.OpenTime,
-                OrganizationStartDay = organizationTimes.OrganizationStartDay,
-                Province = province.ProvinceName,
-                CloseTime = organizationTimes.CloseTime,
-                TypeOfServiceId = registeredOrganization.TypeOfServiceId,
-                Address = registeredOrganization.Address,
-                City = registeredOrganization.City,
-                Email = registeredOrganization.Email,
-                IsVerified = registeredOrganization.IsVerified,
-                Latitude = registeredOrganization.Latitude,
-                Longitude = registeredOrganization.Longitude,
-                PhoneNumber = registeredOrganization.PhoneNumber,
-                RegisteredDate = registeredOrganization.RegisteredDate,
-                Suburb = registeredOrganization.Suburb,
-            };
+               OrganizationId = a.Id,
+               OrganizationEndDay = a.OrganizationTimes.Where(o=> o.Id == a.Id).Select(t => t.OrganizationEndDay).First(),
+               OrganizationStartDay = a.OrganizationTimes.Where(o => o.Id == a.Id).Select(t => t.OrganizationStartDay).First(),
+               Name = a.Name,
+               Address = a.Address,
+               City = a.City,
+               CloseTime = a.OrganizationTimes.Where(o => o.Id == a.Id).Select(t => t.CloseTime).First(),
+               OpenTime = a.OrganizationTimes.Where(o => o.Id == a.Id).Select(t => t.OpenTime).First(),
+               Province = a.Province.ProvinceName,
+               TypeOfServiceId = a.TypeOfServiceId,
+               Email = a.Email,
+               IsVerified = a.IsVerified,
+               Latitude = a.Latitude,
+               Longitude = a.Longitude,
+               PhoneNumber = a.PhoneNumber,
+               RegisteredDate = a.RegisteredDate,
+               Suburb = a.Suburb
+            }
+            ).FirstAsync();
             return organizationDetail == null ? null : organizationDetail;
+        }
+
+        [HttpGet("GetOrganizationsByProvince/{id}")]
+        public async Task<List<RegisteredOrganization>> GetOrganizationsByProvince(int id)
+        {
+            var registeredOrganization = await _context.RegisteredOrganization.Where(o=> o.ProvinceId == id).ToListAsync();
+            return registeredOrganization == null ? null : registeredOrganization;
         }
 
         [HttpGet("GetOrganizationsByTypeofService/{id}")]
         public async Task<List<RegisteredOrganization>> GetOrganizationsByTypeofService(int id)
         {
-            var registeredOrganization = await _context.RegisteredOrganization.Where(o=> o.TypeOfServiceId == id).ToListAsync();
+            var registeredOrganization = await _context.RegisteredOrganization.Where(o => o.TypeOfServiceId == id).ToListAsync();
             return registeredOrganization == null ? null : registeredOrganization;
         }
+
 
         [HttpPost("CreateNewOrganization/")]
         public async Task<int> CreateNewOrganization(RegisteredOrganization registeredOrganization)

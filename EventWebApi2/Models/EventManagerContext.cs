@@ -15,15 +15,20 @@ namespace EventWebApi2.Models
         {
         }
 
+        public virtual DbSet<Admin> Admin { get; set; }
         public virtual DbSet<Appointment> Appointment { get; set; }
         public virtual DbSet<AppointmentRejection> AppointmentRejection { get; set; }
+        public virtual DbSet<Balancehistory> Balancehistory { get; set; }
         public virtual DbSet<EmailTemplate> EmailTemplate { get; set; }
         public virtual DbSet<OrganizationSub> OrganizationSub { get; set; }
         public virtual DbSet<OrganizationTimes> OrganizationTimes { get; set; }
+        public virtual DbSet<Orgtotaltickets> Orgtotaltickets { get; set; }
         public virtual DbSet<Province> Province { get; set; }
         public virtual DbSet<RegisteredConsultant> RegisteredConsultant { get; set; }
         public virtual DbSet<RegisteredOrganization> RegisteredOrganization { get; set; }
         public virtual DbSet<RegisteredUser> RegisteredUser { get; set; }
+        public virtual DbSet<Subscription> Subscription { get; set; }
+        public virtual DbSet<Tickettotal> Tickettotal { get; set; }
         public virtual DbSet<TypeOfService> TypeOfService { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -39,6 +44,26 @@ namespace EventWebApi2.Models
         {
             modelBuilder.HasAnnotation("Relational:DefaultSchema", "jabate");
 
+            modelBuilder.Entity<Admin>(entity =>
+            {
+                entity.ToTable("admin", "dbo");
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasMaxLength(80)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Username)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<Appointment>(entity =>
             {
                 entity.ToTable("Appointment", "dbo");
@@ -51,6 +76,10 @@ namespace EventWebApi2.Models
 
                 entity.Property(e => e.TicketNumber)
                     .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Time)
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
@@ -95,6 +124,56 @@ namespace EventWebApi2.Models
                     .HasForeignKey(d => d.AppointmentId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_AppointmentRejection_Appointment");
+            });
+
+            modelBuilder.Entity<Balancehistory>(entity =>
+            {
+                entity.ToTable("balancehistory", "dbo");
+
+                entity.Property(e => e.Amount)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Available)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Created)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Currency)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Fee)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Id2)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Net)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Source)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<EmailTemplate>(entity =>
@@ -142,6 +221,21 @@ namespace EventWebApi2.Models
                     .HasForeignKey(d => d.OrganizationId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_OrganizationTimes_RegisteredOrganization");
+            });
+
+            modelBuilder.Entity<Orgtotaltickets>(entity =>
+            {
+                entity.ToTable("orgtotaltickets", "dbo");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Orgname)
+                    .IsRequired()
+                    .HasColumnName("orgname")
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Totaltickets).HasColumnName("totaltickets");
             });
 
             modelBuilder.Entity<Province>(entity =>
@@ -238,7 +332,11 @@ namespace EventWebApi2.Models
                     .HasMaxLength(10)
                     .IsUnicode(false);
 
-                entity.Property(e => e.RegisteredDate).HasColumnType("datetime");
+                entity.Property(e => e.RegisteredDate)
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.Status).HasColumnName("status");
 
                 entity.Property(e => e.Suburb)
                     .HasMaxLength(80)
@@ -261,11 +359,16 @@ namespace EventWebApi2.Models
             {
                 entity.ToTable("RegisteredUser", "dbo");
 
-                entity.Property(e => e.BirthDate).HasColumnType("datetime");
+                entity.Property(e => e.BirthDate).HasColumnType("date");
 
                 entity.Property(e => e.CellphoneNumber)
                     .IsRequired()
                     .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Code)
+                    .HasColumnName("code")
+                    .HasMaxLength(300)
                     .IsUnicode(false);
 
                 entity.Property(e => e.Email)
@@ -277,6 +380,8 @@ namespace EventWebApi2.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.IsActive).HasColumnName("isActive");
 
                 entity.Property(e => e.IsVerified).HasColumnName("isVerified");
 
@@ -299,6 +404,44 @@ namespace EventWebApi2.Models
                     .IsRequired()
                     .HasMaxLength(50)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Subscription>(entity =>
+            {
+                entity.ToTable("subscription", "dbo");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Email)
+                    .HasColumnName("email")
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Premium).HasColumnName("premium");
+
+                entity.Property(e => e.Username)
+                    .HasColumnName("username")
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Tickettotal>(entity =>
+            {
+                entity.HasKey(e => e.Ticketid);
+
+                entity.ToTable("tickettotal", "dbo");
+
+                entity.Property(e => e.Ticketid).HasColumnName("ticketid");
+
+                entity.Property(e => e.Date)
+                    .HasColumnName("date")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.Missed).HasColumnName("missed");
+
+                entity.Property(e => e.Orgid).HasColumnName("orgid");
+
+                entity.Property(e => e.Total).HasColumnName("total");
             });
 
             modelBuilder.Entity<TypeOfService>(entity =>

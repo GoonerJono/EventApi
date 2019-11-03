@@ -14,6 +14,7 @@ namespace EventWebApi2.Models
         public string TicketNumber { get; set; }
         public DateTime Date { get; set; }
         public string Reason { get; set; }
+        public string Time { get; set; }
         public int TypeOfServiceId { get; set; }
         public int OrganizationId { get; set; }
         public int UserId { get; set; }

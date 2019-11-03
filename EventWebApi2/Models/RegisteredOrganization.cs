@@ -26,6 +26,9 @@ namespace EventWebApi2.Models
         public int ProvinceId { get; set; }
         public string Longitude { get; set; }
         public string Latitude { get; set; }
+        public int? Premium { get; set; }
+        public bool? Status { get; set; }
+        public int? Distance { get; set; }
 
         public Province Province { get; set; }
         public TypeOfService TypeOfService { get; set; }

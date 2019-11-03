@@ -19,7 +19,9 @@ namespace EventWebApi2.Models
         public string Gender { get; set; }
         public string Email { get; set; }
         public string CellphoneNumber { get; set; }
+        public string Code { get; set; }
         public bool? IsVerified { get; set; }
+        public bool? IsActive { get; set; }
 
         public ICollection<Appointment> Appointment { get; set; }
     }

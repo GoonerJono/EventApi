@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -38,7 +39,7 @@ namespace EventWebApi2.Controllers
                 var userId = _context.RegisteredUser.Add(registeredUser);
                 if (await _context.SaveChangesAsync() > 0)
                 {
-                    SendVerificationEmail(registeredUser, userId);
+                    await SendVerificationEmail(registeredUser, userId);
                     return 1;
                 }
                 return 0;
@@ -47,15 +48,13 @@ namespace EventWebApi2.Controllers
             return 2;
         }
 
-        private void SendVerificationEmail(RegisteredUser registeredUser, EntityEntry<RegisteredUser> userId)
+        private async Task SendVerificationEmail(RegisteredUser registeredUser, EntityEntry<RegisteredUser> userId)
         {
             MailMessage mm = new MailMessage();
-            var body =  _context.EmailTemplate.Where(e => e.Id == 1).Select(e => e.EmailTemplate1).First();
-           var body2 = body.Replace("{UserEmail}", registeredUser.Email);
-           var body3 = body2.Replace("{userId}", userId.Entity.Id.ToString());
+            var body = await GetBody(userId);
             mm.To.Add(registeredUser.Email);
             mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
-            mm.Body = body3;
+            mm.Body = body;
              //   $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
             // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
             mm.IsBodyHtml = true;
@@ -72,12 +71,19 @@ namespace EventWebApi2.Controllers
         public async Task<string> VerifyUserDetails(int id)
         {
             var userDetails = await _context.RegisteredUser.FindAsync(id);
-            userDetails.IsVerified = true;
-             _context.RegisteredUser.Update(userDetails);
-             if (await _context.SaveChangesAsync() > 0)
-             {
-                 return "User is verified";
-             }
+            if(userDetails.IsVerified != true)
+            {
+                userDetails.IsVerified = true;
+                _context.RegisteredUser.Update(userDetails);
+                if (await _context.SaveChangesAsync() > 0)
+                {
+                    return "User is verified";
+                }
+            }else
+            {
+                return "User is already Verified";
+            }
+           
              return "User was not verified";
         }
 
@@ -91,6 +97,28 @@ namespace EventWebApi2.Controllers
                 return 1;
             }
             return 0;
+        }
+
+        private async Task<string> GetBody(EntityEntry<RegisteredUser> userId)
+        {
+            var body = await _context.EmailTemplate.Where(e => e.Id == 1).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
+            var userDetails = await _context.RegisteredUser.Where(a => a.Id == (int)userId.Entity.Id).Select(a => new RegisteredUser
+            {
+                Id = a.Id,
+                Name = a.Name,
+                Surname = a.Surname,
+                Email = a.Email
+            }).FirstOrDefaultAsync();
+            var emailTokens = new Dictionary<string, string>()
+            {
+                ["{useremail}"] = userDetails.Email,
+                ["{username}"] = $"{userDetails.Name} {userDetails.Surname}",
+                ["{userId}"] = userDetails.Id.ToString()
+                
+            };
+            foreach (var token in emailTokens) body = body.Replace($"{token.Key}", token.Value);
+
+            return body;
         }
     }
 }
