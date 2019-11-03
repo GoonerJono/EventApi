@@ -303,12 +303,13 @@ namespace EventWebApi2.Controllers
                 Id = a.Id,
                 User = a.User,
                 Date = a.Date,
-                Reason = a.Reason
+                Reason = a.Reason,
+                TicketNumber = a.TicketNumber
             }).FirstOrDefaultAsync();
             var emailTokens = new Dictionary<string, string>()
             {
                 ["{userName}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
-                ["{ticketnumber}"] = appointmentDetails.Reason,
+                ["{ticketNumber}"] = appointmentDetails.TicketNumber,
                 ["{appointmentId}"] = appointmentDetails.Id.ToString()
             };
             foreach (var token in emailTokens) body = body.Replace($"{token.Key}", token.Value);
