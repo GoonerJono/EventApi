@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -89,9 +90,10 @@ namespace EventWebApi2.Controllers
                 {
                     var ticketNumber = CreateTicket(appointment.OrganizationId);
                     appointment.TicketNumber = ticketNumber;
-                    _context.Appointment.Add(appointment);
+                    var appointmentId = _context.Appointment.Add(appointment);
                     if (await _context.SaveChangesAsync() > 0)
                     {
+                       await SendEmail(appointment.ConsultantId, appointment.UserId, appointmentId.Entity.Id);
                         return 1;
                     }
                 }
@@ -99,7 +101,7 @@ namespace EventWebApi2.Controllers
                 {
                     return 2;
                 }
-                   return 3;
+                return 3;
                 
         }
 
@@ -201,19 +203,15 @@ namespace EventWebApi2.Controllers
             return 0;
         }
 
-        private async Task SendEmail(int consultantId, int userId)
+        private async Task SendEmail(int consultantId, int userId, int appointmentId)
         {
             var consultantDetails = await _context.RegisteredConsultant.Where(c => c.Id == consultantId).FirstAsync();
             var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
             MailMessage mm = new MailMessage();
-            var body = await _context.EmailTemplate.Where(e => e.Id == 1).Select(e => e.EmailTemplate1).FirstAsync();
-            var body2 = body.Replace("{UserEmail}", userDetails.Email);
-            var body3 = body2.Replace("{userId}", userDetails.Id.ToString());
+            var body = await GetBody(appointmentId);
             mm.To.Add(consultantDetails.Email);
             mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
-            mm.Body = body3;
-            //   $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
-            // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
+            mm.Body = body;
             mm.IsBodyHtml = true;
             mm.Subject = "Verification";
             SmtpClient smcl = new SmtpClient();
@@ -223,6 +221,29 @@ namespace EventWebApi2.Controllers
             smcl.EnableSsl = true;
             smcl.Send(mm);
 
+        }
+
+        private async Task<string> GetBody(int appointmentId)
+        {
+            var body = await _context.EmailTemplate.Where(e => e.Id == 2).Select(a => a.EmailTemplate1).FirstOrDefaultAsync();
+            var appointmentDetails = await _context.Appointment.Where(a => a.Id == appointmentId).Select(a => new Appointment
+            {
+                Id = a.Id,
+                User = a.User,
+                Date = a.Date,
+                Reason = a.Reason
+            }).FirstOrDefaultAsync();
+            var emailTokens = new Dictionary<string, string>()
+            {
+                ["{userName}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
+                ["{appointmentReason}"] = appointmentDetails.Reason,
+                ["{date}"] = appointmentDetails.Date.ToString("dddd, dd MMMM yyyy"),
+                ["{time}"] = appointmentDetails.Date.ToString("HH:mm"),
+                ["{appointmentId}"] = appointmentDetails.Id.ToString()
+            };
+            foreach (var token in emailTokens) body = body.Replace($"{token.Key}", token.Value);
+
+            return body;
         }
 
         [HttpGet("AcceptAppointment/{id}")]
@@ -246,6 +267,11 @@ namespace EventWebApi2.Controllers
             appointmentDetails.IsAccepted = false;
             appointmentDetails.IsRejected = true;
             _context.Appointment.Update(appointmentDetails);
+            _context.AppointmentRejection.Add(new AppointmentRejection
+            {
+                AppointmentId = id,
+                Reason = "Unavailable for appointment"
+            });
             if (await _context.SaveChangesAsync() > 0)
             {
                 return "Appointment Declined";
