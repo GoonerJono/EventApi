@@ -53,15 +53,15 @@ namespace EventWebApi2.Controllers
             MailMessage mm = new MailMessage();
             var body = await GetBody(userId);
             mm.To.Add(registeredUser.Email);
-            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.From = new MailAddress("dynamicp@dynamicprogrammers.co.za");
             mm.Body = body;
              //   $"Verification link : http://dynamicprogrammers.co.za/api/User/VerifyUserDetails/{userId.Entity.Id}";
             // mm.Body = $"Verification link : https://localhost:44346/api/User/VerifyUserDetails/{userId.Entity.Id}";
             mm.IsBodyHtml = true;
             mm.Subject = "Verification";
             SmtpClient smcl = new SmtpClient();
-            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
-            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Credentials = new NetworkCredential("dynamicp@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n2.zadns.co.za";
             smcl.Port = 25;
             smcl.EnableSsl = true;
             smcl.Send(mm);

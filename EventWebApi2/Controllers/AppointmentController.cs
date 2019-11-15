@@ -219,13 +219,13 @@ namespace EventWebApi2.Controllers
             MailMessage mm = new MailMessage();
             var body = await GetBody(appointmentId, emailBodyId);
             mm.To.Add(consultantDetails.Email);
-            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.From = new MailAddress("dynamicp@dynamicprogrammers.co.za");
             mm.Body = body;
             mm.IsBodyHtml = true;
             mm.Subject = "New Appointment";
             SmtpClient smcl = new SmtpClient();
-            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
-            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Credentials = new NetworkCredential("dynamicp@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n2.zadns.co.za";
             smcl.Port = 25;
             smcl.EnableSsl = true;
             smcl.Send(mm);
@@ -239,13 +239,13 @@ namespace EventWebApi2.Controllers
             MailMessage mm = new MailMessage();
             var body = await GetBody2(appointmentId, emailBodyId);
             mm.To.Add(consultantDetails.Email);
-            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.From = new MailAddress("dynamicp@dynamicprogrammers.co.za");
             mm.Body = body;
             mm.IsBodyHtml = true;
             mm.Subject = "Appointment Cancellation Request";
             SmtpClient smcl = new SmtpClient();
-            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
-            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Credentials = new NetworkCredential("dynamicp@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n2.zadns.co.za";
             smcl.Port = 25;
             smcl.EnableSsl = true;
             smcl.Send(mm);
@@ -258,14 +258,14 @@ namespace EventWebApi2.Controllers
             var userDetails = await _context.RegisteredUser.Where(u => u.Id == userId).FirstAsync();
             MailMessage mm = new MailMessage();
             var body = await GetBody3(appointmentId, emailBodyId, choice);
-            mm.To.Add(consultantDetails.Email);
-            mm.From = new MailAddress("mail@dynamicprogrammers.co.za");
+            mm.To.Add(userDetails.Email);
+            mm.From = new MailAddress("dynamicp@dynamicprogrammers.co.za");
             mm.Body = body;
             mm.IsBodyHtml = true;
             mm.Subject = "Appointment Accepted or Cancelled";
             SmtpClient smcl = new SmtpClient();
-            smcl.Credentials = new NetworkCredential("mail@dynamicprogrammers.co.za", "Gooner1478@#");
-            smcl.Host = "bl4n1.zadns.co.za";
+            smcl.Credentials = new NetworkCredential("dynamicp@dynamicprogrammers.co.za", "Gooner1478@#");
+            smcl.Host = "bl4n2.zadns.co.za";
             smcl.Port = 25;
             smcl.EnableSsl = true;
             smcl.Send(mm);
@@ -330,8 +330,8 @@ namespace EventWebApi2.Controllers
             }).FirstOrDefaultAsync();
             var emailTokens = new Dictionary<string, string>()
             {
-                ["{userName}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
-                ["{ticketnumber}"] = appointmentDetails.Reason,
+                ["{username}"] = $"{appointmentDetails.User.Name} {appointmentDetails.User.Surname}",
+                ["{ticketNumber}"] = appointmentDetails.Reason,
                 ["{acceptedOrCancel}"] = choice,
                 ["{consultant}"] = $"{appointmentDetails.Consultant.Name} {appointmentDetails.Consultant.Surname}",
             };
